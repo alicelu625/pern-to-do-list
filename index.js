@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
+const path = require('path'); //alows working with directory paths
 
 const app = express();
 
@@ -8,11 +9,18 @@ const app = express();
 app.use(cors()); //allow different domains on server to interact with each other
 app.use(express.json()); //enable get json data from request body
 
+if(process.env.NODE_ENV === 'production') {
+    //serve static content from a specified directory (join root with client/build)
+    app.use(express.static(path.join(__dirname, 'client/build')));
+}
+
 /*LISTENER*/
 //env variable for port if set, otherwise, use 5000
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 //listen on port
-app.listen(port, () => console.log(`Listening on port ${port}...`));
+app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}...`);
+});
 
 /*ROUTES*/
 
@@ -88,3 +96,8 @@ app.delete('/todos/:id', async (req, res) => {
     }
 });
 
+//for any routes routes not defined
+app.get("*", (req,res) => {
+    //point to index.html page
+    res.sendFile(path.join(__dirname, 'client/build/index.html'));
+});
